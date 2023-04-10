@@ -1,0 +1,15 @@
+DEbut:
+x : 2944, y : 1056
+
+OVERWORLD :
+99,36
+
+DONJON :
+x: 176
+y: 432
+
+Hauteur : 37
+
+Largeur : 27
+
+Sortie : 208, 1136

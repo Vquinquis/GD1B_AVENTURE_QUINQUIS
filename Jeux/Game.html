@@ -1,0 +1,5200 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Mon 1er jeu Phaser</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var enemies
+        class Overworld extends Phaser.Scene {
+            constructor() {
+                super("Overworld");
+            }
+
+            preload() {
+                this.load.spritesheet('enemy','assets/Ennemi_Zelda.png',
+                    {frameWidth:64, frameHeight:64 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+                this.load.audio('debut','assets/Debut.mp3')
+                
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte", "assets/Overworld_Zelda-like_01.json");  
+            }
+
+
+
+            create() {
+                music=this.sound.add('debut',{ loop: true })
+                music.play()
+                
+
+                var rock = this.physics.add.group({
+                    immovable:true,
+                    estSolide:true
+                });
+                var stars= this.physics.add.group()
+
+                enemies =this.physics.add.group()
+
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carte");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "background",
+                        tileset
+                        );
+
+                // chargement du calque calque_background_2
+                const calque_background_2 = carteDuNiveau.createLayer(
+                        "background2",
+                        tileset
+                        );
+
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "calque1",
+                        tileset
+                        );
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                
+                var enemies1=enemies.create(2704, 848, 'enemy',);
+                enemies1.setFrame(3)
+                var enemies2=enemies.create(2384,752, 'enemy');
+                var enemies3=enemies.create(976,400, 'enemy');
+                enemies3.setFrame(7)
+                var enemies4=enemies.create(784,304, 'enemy');
+                enemies4.setFrame(6)
+                var enemies5=enemies.create(560,368, 'enemy');
+                enemies5.setFrame(3)
+                var enemies6=enemies.create(176,400, 'enemy');
+                enemies6.setFrame(6)
+                var enemies7=enemies.create(336,112, 'enemy');
+                enemies7.setFrame(7)
+                var enemies8=enemies.create(112,96, 'enemy');
+                var enemies9=enemies.create(816,144, 'enemy');
+                var enemies10=enemies.create(848,144, 'enemy');
+                var enemies11=enemies.create(880,144, 'enemy');
+                //enemies.body.setSize(32,50)
+                //enemies.body.setOffset(15,12)
+                enemies.children.iterateLocal('setSize', 32, 50);
+                enemies.children.iterateLocal('setOffset', 15, 12);
+                
+
+                marteau=this.physics.add.sprite(848,48,'marteau')
+
+                
+                var rock1=rock.create(2528,560,'rock')
+                var rock2=rock.create(2528,528,'rock')
+                var rock3=rock.create(2528,496,'rock')
+                var rock4=rock.create(1232,432,'rock')
+                var rock5=rock.create(1232,464,'rock')
+                var rock6=rock.create(1232, 48,'rock')
+                var rock7=rock.create(1232, 80,'rock')
+                var rock8=rock.create(1232, 112,'rock')
+                var rock9=rock.create(1200, 112,'rock')
+                var rock10=rock.create(1264,464,'rock')
+                var rock11=rock.create(1264,432,'rock')
+                var rock12=rock.create(978,176,'rock')
+                var rock13=rock.create(1680,240,'rock')
+                var rock14=rock.create(1712,240,'rock')
+
+                var stars1 = stars.create(2672,624,'diamant')
+                var stars2 = stars.create(1392,48, 'diamant')
+                var stars2 = stars.create(1040,176, 'diamant')
+                var stars2 = stars.create(560,48, 'diamant')
+
+                
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(player, rock)
+                this.physics.add.collider(player, enemies, this.hitEnemy);
+                this.physics.add.collider(enemies,calque_plateformes);
+                
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 3168, 1152);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 3168, 1152);
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'Enemy_move',
+                    frames: this.anims.generateFrameNumbers('enemy', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                })
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, enemies, this.attack);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+                this.physics.add.overlap(player, rock, this.eclate_roc)
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+
+                enemies.getChildren().forEach(enemy => {
+                const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, player.x, player.y);
+                if (distance < 128) {
+                    enemy.setVelocity(player.x - enemy.x, player.y - enemy.y);
+                } 
+                else {
+                    enemy.setVelocity(0);
+                }})
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.x==1680 && player.y==48) {
+                    posx= 172
+                    posy= 432
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+                if(player.x==2160 && player.y==560){
+                    posx= 204
+                    posy= 240
+
+                    this.scene.start('Maison_01', {  score: score, life:life });
+                }
+
+                if(player.x==1584 && player.y==560){
+                    posx= 204
+                    posy= 240
+
+                    this.scene.start('Maison_02', {  score: score, life:life });
+                }
+
+                if(player.x==848 && player.y==560){
+                    posx= 204
+                    posy= 240
+
+                    this.scene.start('Forge', {  score: score, life:life });
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                if (attack==true){
+                enemies.disableBody(true, true);
+                }
+            }
+
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+                else{
+                    player.x=vieuxx
+                    player.y=vieuxy
+                }
+    
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+
+
+                
+                }
+
+
+
+        class Donjon extends Phaser.Scene {
+            constructor() {
+                super("Donjon");
+            }
+
+            //init(data){
+                //posy=data.posy;
+            //}
+            preload() {
+                this.load.spritesheet('enemy','assets/Ennemi_Zelda.png',
+                    {frameWidth:64, frameHeight:64 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.image('grille','assets/Grille.png')
+                this.load.image('key','assets/Cle.png')
+                this.load.image('keydoor','assets/Porte_cle.png')
+                this.load.image('bouton', 'assets/Bouton.png')
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.audio('donjon','assets/Donjon.mp3')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte2", "assets/Donjon_base_01.json");  
+            }
+
+
+
+            create() {
+                music.destroy()
+                music=this.sound.add('donjon',{ loop: true })
+                music.play()
+
+                var rock=this.physics.add.group({
+                    immovable:true
+                })
+                enemies =this.physics.add.group()
+
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carte2");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "Background2",
+                        tileset
+                        )
+
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Calque2",
+                        tileset
+                        );
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+                bouton=this.physics.add.sprite(624,112,'bouton')
+                g1=this.physics.add.sprite(240,16,'grille')
+                g2=this.physics.add.sprite(208,16,'grille')
+                g3=this.physics.add.sprite(752,240,'grille')
+                g1.body.immovable=true
+                g2.body.immovable=true
+                g3.body.immovable=true
+                cle=this.physics.add.sprite(464,336, 'key')
+                porte=this.physics.add.sprite(816,16, 'keydoor')
+                porte.body.immovable=true
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                var enemies1=enemies.create(304,80,'enemy');
+                var enemies2=enemies.create(144,80,'enemy');
+                var enemies3=enemies.create(560,272,'enemy');
+                enemies3.setFrame(6)
+                var enemies4=enemies.create(560,336,'enemy');
+                enemies4.setFrame(6)
+                var enemies5=enemies.create(560,400,'enemy');
+                enemies5.setFrame(6)
+
+                enemies.children.iterateLocal('setSize', 32, 50);
+                enemies.children.iterateLocal('setOffset', 15, 12);
+
+                var rock1=rock.create(592,80,'rock')
+                var rock2=rock.create(592,112,'rock')
+                var rock3=rock.create(592,144,'rock')
+                var rock4=rock.create(624,80,'rock')
+                var rock5=rock.create(624,112,'rock')
+                var rock6=rock.create(624,144,'rock')
+                var rock7=rock.create(656,80,'rock')
+                var rock8=rock.create(656,112,'rock')
+                var rock9=rock.create(656,144,'rock')
+                var rock10=rock.create(432,176,'rock')
+                var rock11=rock.create(432,208,'rock')
+
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(player, enemies, this.hitEnemy);
+                this.physics.add.collider(enemies,calque_plateformes);
+                this.physics.add.collider(player,rock);
+                this.physics.add.collider(player,porte,this.ouvrir_porte)
+                this.physics.add.collider(player,g1)
+                this.physics.add.collider(player,g2)
+                this.physics.add.collider(player,g3)
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 864, 480);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 864,480 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+                
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, enemies, this.attack);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+                this.physics.add.overlap(player, rock, this.eclate_roc)
+                this.physics.add.overlap(player, bouton, this.grilleBouton)
+                this.physics.add.overlap(player, cle, this.recup_cle)
+
+
+                
+                this.physics.add.collider(player, enemies, this.hitEnemy, null, this);
+            }
+
+            update() {
+
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                enemies.getChildren().forEach(enemy => {
+                const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, player.x, player.y);
+                if (distance < 128) {
+                    enemy.setVelocity(player.x - enemy.x, player.y - enemy.y);
+                } 
+                else {
+                    enemy.setVelocity(0);
+                }})
+                this.grille_ouverte()
+                this.majLife()
+                console.log(life)
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y<0 &&player.x>480 && lanterne_possede==true) {
+                    posx=800
+                    posy=367
+
+                    this.scene.start('Donjon_suite', {  score: score, life:life});
+                }
+                if (player.y<0 &&player.x<480 && lanterne_possede==true) {
+                    posx=240
+                    posy=464
+
+                    this.scene.start('Donjon_suite', {  score: score, life:life});
+                }
+                
+                if (player.y<0 && lanterne_possede==false){
+                    posx=400
+                    posy=240
+                    this.scene.start('Dark',{ score: score, life:life})
+                }
+
+                if (player.y==432 && player.x==208 && boss_vaincu==true){
+                    posx= 1648
+                    posy= 48
+                    this.scene.start('Overworld_02', {score: score, life:life})
+                }
+                if (player.y==432 && player.x==208 && boss_vaincu==false){
+                    posx= 1648
+                    posy= 48
+
+                    this.scene.start('Overworld', {score: score, life:life})
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+                
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            grille_ouverte(grille){
+                if (boss_vaincu==true){
+                    g1.disableBody(true, true)
+                    g2.disableBody(true,true)
+                }
+            }
+
+            recup_cle(player,cle){
+                cle_possede=true
+                cle.disableBody(true, true)
+            }
+
+            ouvrir_porte(player, porte){
+                if (cle_possede==true){
+                    porte.disableBody(true,true)
+                }
+            }
+            grilleBouton(){
+                if (marteau==false && attack==false){
+                g3.disableBody(true,true)
+                }
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            
+        }
+
+        class Donjon_suite extends Phaser.Scene {
+            constructor() {
+                super("Donjon_suite");
+            }
+            
+
+            //init(data){
+                //posy=data.posy;
+            //}
+            preload() {
+                this.load.spritesheet('enemy','assets/Ennemi_Zelda.png',
+                    {frameWidth:64, frameHeight:64 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.image('grille', 'assets/Grille.png'),
+                this.load.spritesheet('boss', 'assets/Poule.png',
+                    {frameWidth:64, frameHeight:64})
+                this.load.image('trou', 'assets/carre.png')
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.image('Box','assets/Box.png')
+                this.load.image('Coeur', 'assets/coeur.png')
+                this.load.audio('donjon','assets/Donjon.mp3')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte3", "assets/Donjon_02.json");  
+            }
+
+
+            create() {
+                music.play()
+                var rock=this.physics.add.group({
+                    immovable:true
+                })
+                enemies =this.physics.add.group()
+
+                var grille =this.physics.add.group({
+                    immovable:true
+                })
+                var trou=this.physics.add.group({
+                    immovable:true
+                })
+
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carte3");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "background3",
+                        tileset
+                        )
+
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Calque3",
+                        tileset
+                        );
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                var t1=trou.create(752,368,'trou')
+                t1.setSize(0,160)
+                var t2=trou.create(672,416,'trou')
+                t2.setSize(112,64)
+                var t3=trou.create(528,432,'trou')
+                t3.setSize(160,18)
+                var t4=trou.create(544,320,'trou')
+                t4.setSize(50,112)
+                var t5=trou.create(624,288,'trou')
+                t5.setSize(96,64)
+                var t6=trou.create(704,192,'trou')
+                t6.setSize(256,64)
+                var t7=trou.create(608,80,'trou')
+                t7.setSize(320,0)
+                var t8=trou.create(336,144,'trou')
+                t8.setSize(160,160)
+                var t9=trou.create(176,128,'trou')
+                t9.setSize(0,192)
+
+                coeur=this.physics.add.sprite(816,48,'Coeur')
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+
+                boss=this.physics.add.sprite(224,384,'boss')
+
+                var enemies1=enemies.create(464, 48,'enemy');
+                enemies1.setFrame(6)
+                var enemies2=enemies.create(720, 128, 'enemy');
+                enemies2.setFrame(7)
+                enemies.children.iterateLocal('setSize', 32, 50);
+                enemies.children.iterateLocal('setOffset', 15, 12);
+
+                var g1=grille.create(208,464,'grille')
+                var g2=grille.create(240,464,'grille')
+                
+                var rock1=rock.create(240,432,'rock')
+                var rock2=rock.create(208,432,'rock')
+                var rock3=rock.create(240,336,'rock')
+                var rock4=rock.create(208,336,'rock')
+                var rock5=rock.create(272,400,'rock')
+                var rock6=rock.create(272,368,'rock')
+                var rock7=rock.create(176,400,'rock')
+                var rock8=rock.create(176,368,'rock')
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(player, enemies, this.hitEnemy);
+                this.physics.add.collider(enemies,calque_plateformes);
+                this.physics.add.collider(player,rock);
+                this.physics.add.collider(enemies,rock);
+                this.physics.add.collider(player, grille, this.grille_boss)
+                this.physics.add.collider(player,boss, this.hitEnemy)
+                this.physics.add.collider(boss,rock)
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 864, 480);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 864,480 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                textbox=this.physics.add.sprite(365,125,'Box').setScrollFactor(0)
+                text=this.add.text(210, 95, 'Tu es arrivé jusqu ici,\nimpressionnant. Mais maintenant\ntu va affronter la puissance\nde la grande Cocotte', { fontSize: '16px',fill:'#fff' }).setScrollFactor(0);
+                textbox.setScale(1.2)
+                textbox.setVisible(false)
+                text.setVisible(false)
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, enemies, this.attack);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+                this.physics.add.overlap(player, rock, this.eclate_roc)
+                this.physics.add.overlap(player,trou,this.fall)
+                this.physics.add.overlap(player,boss,this.hitBoss)
+                this.physics.add.overlap(player,coeur,this.recupvie)
+
+
+                
+                this.physics.add.collider(player, enemies, this.hitEnemy, null, this);
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                enemies.getChildren().forEach(enemy => {
+                const distance = Phaser.Math.Distance.Between(enemy.x, enemy.y, player.x, player.y);
+                if (distance < 64) {
+                    enemy.setVelocity(player.x - enemy.x, player.y - enemy.y);
+                } 
+                else {
+                    enemy.setVelocity(0);
+                }})
+
+                const distance = Phaser.Math.Distance.Between(boss.x, boss.y, player.x, player.y);
+                if (distance < 128) {
+                    boss.setVelocity(player.x - boss.x, player.y - boss.y);
+                } 
+                else {
+                    boss.setVelocity(0);}
+
+                if (player.x<448 && player.y>224 && texteDit==true){
+                    textbox.setVisible(true)
+                    text.setVisible(true)
+                    texteDit=false
+                }
+
+                this.majLife()
+                console.log(bossLife)
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y>480 && player.x>448) {
+                    posx=816
+                    posy=16
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+
+                if (player.y>480 && player.x<448){
+                    posx=240
+                    posy=16
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+            hitBoss(){
+                if (bossLife>0){
+                    if (bossVulnerable==true){
+                    bossLife-=1
+                    bossVulnerable=false
+                    boss.setVelocityX(0)
+                    boss.setVelocityY(0)
+                    boss.setTint(0xff0000)
+                    setTimeout(()=>{
+                        boss.setTint(0xffffff)
+                        bossVulnerable=true
+                    },1000)
+                    
+                    }
+                }
+                else{
+                    boss.disableBody(true,true)
+                    boss_vaincu=true
+                }
+            }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            grille_boss(player, grille){
+                if (boss_vaincu==true){
+                    grille.disableBody(true,true)
+                }
+            }
+
+            fall(player,trou){
+                if (attack==false){
+                life-=1
+                player.x=posx
+                player.y=posy
+                }
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            recupvie(){
+                life=9
+                coeur.disableBody(true,true)
+            }
+        }
+
+        class Dark extends Phaser.Scene {
+            constructor() {
+                super("Dark");
+            }
+            
+
+            //init(data){
+                //posy=data.posy;
+            //}
+            preload() {
+                this.load.spritesheet('enemy','assets/Ennemi_Zelda.png',
+                    {frameWidth:64, frameHeight:64 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.image('trou','assets/carre.png')
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.audio('donjon','assets/Donjon.mp3')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte4", "assets/dark.json");  
+            }
+
+
+            create() {
+                music=this.sound.add('donjon',{ loop: true })
+                music.play()
+                var trou=this.physics.add.group({
+                    immovable:true
+                })
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carte4");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "Dark_B",
+                        tileset
+                        )
+
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Dark",
+                        tileset
+                        );
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                var t1=trou.create(336,144, 'trou')
+                t1.setSize(0,160)
+                var t2=trou.create(256,192, 'trou')
+                t2.setSize(112,64)
+                var t3=trou.create(112,208, 'trou')
+                t3.setSize(160,0)
+                var t4=trou.create(128,96, 'trou')
+                t4.setSize(64,112)
+                var t5=trou.create(192,64, 'trou')
+                t5.setSize(128,64)
+
+                player = this.physics.add.sprite(posx,posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.overlap(player,trou, this.fall)
+
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 864, 480);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 864,480 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+                
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+                
+
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y>480 && player.x>448) {
+                    posx=816
+                    posy=16
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+
+                if (player.y>480 && player.x<448){
+                    posx=240
+                    posy=16
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+                
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            
+            fall(player,trou){
+                life-=1
+                player.x=posx
+                player.y=posy
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+        }
+
+        class Overworld_02 extends Phaser.Scene {
+            constructor() {
+                super("Overworld_02");
+            }
+            //init(data){
+                //posy=data.posy;
+                //posx=data.posx;
+            //}
+
+            preload() {
+                this.load.spritesheet('enemy','assets/Ennemi_Zelda.png',
+                    {frameWidth:64, frameHeight:64 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.spritesheet('chien','assets/PNJ_01.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.spritesheet('kangoo','assets/PNJ_02.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.spritesheet('cochon','assets/PNJ_Forge.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.image('Box','assets/Box.png')
+                this.load.audio('victoire','assets/Victory.mp3')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte", "assets/Overworld_Zelda-like.json");  
+            }
+
+
+
+            create() {
+                music.destroy()
+                music=this.sound.add('victoire',{ loop: true })
+                music.play()
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carte");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "background",
+                        tileset
+                        );
+
+                // chargement du calque calque_background_2
+                const calque_background_2 = carteDuNiveau.createLayer(
+                        "background2",
+                        tileset
+                        );
+
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "calque1",
+                        tileset
+                        );
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+
+                pnj1=this.physics.add.sprite(1648,528,'cochon')
+                pnj2=this.physics.add.sprite(1744,528,'kangoo')
+                pnj3=this.physics.add.sprite(1712,592,'chien')
+                pnj1.body.immovable=true
+                pnj2.body.immovable=true
+                pnj3.body.immovable=true
+                 
+
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(player, pnj1);
+                this.physics.add.collider(player, pnj2);
+                this.physics.add.collider(player, pnj3);
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 3168, 1152);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 3168, 1152);
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                textbox=this.physics.add.sprite(365,125,'Box').setScrollFactor(0)
+                text=this.add.text(210, 95, 'Tu nous a sauvé !\nTu es notre héros !\nMerci ! ', { fontSize: '16px',fill:'#fff' }).setScrollFactor(0);
+                textbox.setScale(1.2)
+                textbox.setVisible(false)
+                text.setVisible(false)
+
+                
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                if (player.y>480 && texteDit==true){
+                    textbox.setVisible(true)
+                    text.setVisible(true)
+                    texteDit=false
+                }
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.x==1680 && player.y==48) {
+                    posx= 172
+                    posy= 432
+
+                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+                if (cursors.space.isDown && texteDit==false){
+                    this .scene.start('Fin')
+                }
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown&&texteDit==true || actb==true){
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            
+        }
+
+        class Maison_01 extends Phaser.Scene {
+            constructor() {
+                super("Maison_01");
+            }
+
+            preload() {
+                this.load.spritesheet('chien','assets/PNJ_01.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.image('Box', 'assets/Box.png')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carteM", "assets/Maison_01.json");  
+            }
+
+
+
+            create() {
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carteM");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "BackgroundMaison1_B",
+                        tileset
+                        );
+                        
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Maison1",
+                        tileset
+                        );
+
+                // chargement du calque calque_background_2
+                const calque_background_2 = carteDuNiveau.createLayer(
+                        "Fenettre",
+                        tileset
+                        );
+
+                
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                pnj=this.physics.add.sprite(176,144, 'chien')
+
+                marteau=this.physics.add.sprite(848,48,'marteau')
+                stars = this.physics.add.sprite(120,350,'diamant')
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(pnj,calque_plateformes);
+                this.physics.add.collider(player, pnj)
+                pnj.body.immovable=true;
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 448, 256);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 448, 256 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                textbox=this.physics.add.sprite(350,120,'Box').setScrollFactor(0)
+                text=this.add.text(210, 95, 'Les poules nous on attaqués\net occupent le temple.\nAide-nous s il te plait', { fontSize: '16px',fill:'#fff' }).setScrollFactor(0);
+
+                
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+                
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y>256) {
+                    posx= 2160
+                    posy= 576
+
+                    this.scene.start('Overworld', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            
+        }
+
+        class Maison_02 extends Phaser.Scene {
+            constructor() {
+                super("Maison_02");
+            }
+
+            preload() {
+                this.load.spritesheet('kangoo','assets/PNJ_02.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.spritesheet('lantern', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.image('Box','assets/Box.png')
+                
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carteM1", "assets/Maison_02_2.json");  
+            }
+
+
+
+            create() {
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carteM1");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "Maison2_B",
+                        tileset
+                        );
+                        
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Maison2",
+                        tileset
+                        );
+
+                // chargement du calque calque_background_2
+                const calque_background_2 = carteDuNiveau.createLayer(
+                        "Fenettre1",
+                        tileset
+                        );
+
+                
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                pnj=this.physics.add.sprite(304,144, 'kangoo')
+
+                lanterne=this.physics.add.sprite(240,112,'lantern')
+
+                this.physics.add.collider(player, calque_plateformes);
+                //this.physics.add.collider(player, enemies, this.hitEnemy);
+                this.physics.add.collider(pnj,calque_plateformes);
+                this.physics.add.collider(player, pnj)
+                pnj.body.immovable=true;
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 448, 256);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 448, 256 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                textbox=this.physics.add.sprite(365,125,'Box').setScrollFactor(0)
+                text=this.add.text(210, 95, 'J ai aidé un grand héros\nune fois. Il m as laissé sa\nlanterne mais elle ne me sers pas.\nJe te l echange contre 4 joyaux', { fontSize: '16px',fill:'#fff' }).setScrollFactor(0);
+                textbox.setScale(1.2)
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                //this.physics.add.overlap(player, enemies, this.attack);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+                this.physics.add.overlap(player, lanterne, this.recup_lanterne)
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+
+                //Deplacement
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y>256) {
+                    posx= 1584
+                    posy= 576
+
+                    this.scene.start('Overworld', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+                
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    textbox.disableBody(true, true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText(score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+
+            recup_lanterne(player, lanterne){
+                if (score>=4){
+                    score-=4;
+                    lanterne_possede=true;
+                    lanterne.disableBody(true, true)
+                }
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            
+        }
+
+        class Forge extends Phaser.Scene {
+            constructor() {
+                super("Forge");
+            }
+
+            preload() {
+                this.load.spritesheet('cochon','assets/PNJ_Forge.png',
+                    {frameWidth:32, frameHeight:32 });
+                this.load.spritesheet('perso', 'assets/Perso_Zelda.png',
+                    { frameWidth: 32, frameHeight: 32 });
+                this.load.spritesheet('attack','assets/Perso_attack.png',
+                    {frameWidth:64, frameHeight:64});
+                this.load.spritesheet('hammer', 'assets/Perso_marteau.png',
+                    {frameWidth:64, frameHeight: 64})
+                this.load.image('Rock', 'assets/Rock.png'),
+                this.load.image('diamant','assets/joyaux.png')
+                this.load.image('marteau','assets/Marteau.png'),
+                this.load.spritesheet('Life', 'assets/Life.png',
+                    {frameWidth:288, frameHeight:32})
+                this.load.image('UI', 'assets/UI2.png')
+                this.load.image('Box','assets/Box.png')
+                this.load.spritesheet('lanterne', 'assets/light.png',
+                    {frameWidth:32, frameHeight:32})
+
+
+            this.load.image("Phaser_tuilesdejeu", "assets/tileset_placeholder_final_4.png");
+
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carteF", "assets/Forge_01.json");  
+            }
+
+
+
+            create() {
+                cursors = this.input.keyboard.createCursorKeys();
+                
+                const carteDuNiveau = this.add.tilemap("carteF");
+
+                // chargement du jeu de tuiles
+                const tileset = carteDuNiveau.addTilesetImage(
+                        "tileset_placeholder_final_4",
+                        "Phaser_tuilesdejeu"
+                        );  ;
+
+                // chargement du calque calque_background
+                const calque_background = carteDuNiveau.createLayer(
+                        "Forge_B",
+                        tileset
+                        );
+                        
+                // chargement du calque calque_plateformes
+                const calque_plateformes = carteDuNiveau.createLayer(
+                        "Forge",
+                        tileset
+                        );
+
+                // chargement du calque calque_background_2
+                const calque_background_2 = carteDuNiveau.createLayer(
+                        "FenettreF",
+                        tileset
+                        );
+
+                
+                
+                calque_plateformes.setCollisionByProperty({ estSolide: true }); 
+
+                
+
+                player = this.physics.add.sprite(posx, posy, 'perso');
+                player.setCollideWorldBounds(false);
+                 
+
+                pnj=this.physics.add.sprite(304,144, 'cochon')
+
+                marteau=this.physics.add.sprite(848,48,'marteau')
+                stars = this.physics.add.sprite(120,350,'diamant')
+
+                this.physics.add.collider(player, calque_plateformes);
+                this.physics.add.collider(pnj,calque_plateformes);
+                this.physics.add.collider(player, pnj)
+                pnj.body.immovable=true;
+
+                // redimentionnement du monde avec les dimensions calculées via tiled
+                this.physics.world.setBounds(0, 0, 448, 256);
+                //  ajout du champs de la caméra de taille identique à celle du monde
+                this.cameras.main.setBounds(0, 0, 448, 256 );
+                // ancrage de la caméra sur le joueur
+                this.cameras.main.startFollow(player);
+                this.cameras.main.setZoom(1.5);
+                ui=this.physics.add.sprite(250,345, "UI").setScrollFactor(0) //115
+                afficheVie= this.physics.add.sprite(250,335, "Life").setScrollFactor(0);
+                afficheGold= this.physics.add.sprite(162,358,"diamant").setScrollFactor(0);
+                afficheLanterne=this.physics.add.sprite(240,355,"lanterne").setScrollFactor(0);
+                afficheMarteau=this.physics.add.sprite(215,355,"marteau").setScrollFactor(0);
+                scoreText = this.add.text(180,346, (score), { fontSize: '32px', fill: '#000' }).setScrollFactor(0);
+                ui.setScale(.7)
+                afficheVie.setScale(.7)
+                afficheGold.setScale(.7)
+                scoreText.setScale(.7)
+                afficheLanterne.setScale(.7)
+                afficheMarteau.setScale(.7)
+                afficheMarteau.setVisible(false)
+                afficheLanterne.setVisible(false)
+
+                textbox=this.physics.add.sprite(365,125,'Box').setScrollFactor(0)
+                text=this.add.text(195, 95, 'J ai perdu mon marteau dans la forêt.\nVa le récuperer, il pourrait te\nservir à casser les rochers devant \nle temple.', { fontSize: '16px',fill:'#fff' }).setScrollFactor(0);
+                textbox.setScale(1.25)
+                
+
+                //Animations
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 14, end: 15 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'turn',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 1 }),
+                    frameRate: 5,
+                    repeat:-1
+                });
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 10, end: 11 }),
+                    frameRate: 5,
+                    repeat: -1
+                    
+                });
+                this.anims.create({
+                    key: 'up',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 6, end: 7 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: 'down',
+                    frames: this.anims.generateFrameNumbers('perso', { start: 2, end: 3 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'attr',
+                    frames: [{ key: 'attack', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attl',
+                    frames: [{ key: 'attack', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'attu',
+                    frames: [{ key: 'attack', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'attd',
+                    frames: [{ key: 'attack', frame :0}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martr',
+                    frames: [{ key: 'hammer', frame :3}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martl',
+                    frames: [{ key: 'hammer', frame :2}],
+                    frameRate: 5,
+                });
+
+                this.anims.create({
+                    key: 'martu',
+                    frames: [{ key: 'hammer', frame :1}],
+                    frameRate: 5,
+                });
+                this.anims.create({
+                    key: 'martd',
+                    frames: [{ key: 'hammer', frame :0}],
+                    frameRate: 5,
+                });
+
+
+
+
+
+                this.physics.add.overlap(player, stars, this.collectStar, null, this);
+                this.physics.add.overlap(player, marteau, this.recup_marteau)
+
+
+            
+            }
+
+            update() {
+                if(marteau_possede==true){
+                    afficheMarteau.setVisible(true)
+                }
+                if(lanterne_possede==true){
+                    afficheLanterne.setVisible(true)
+                }
+
+                this.majLife()
+                console.log(player.x)
+                console.log(player.y)
+                //Deplacement
+                
+
+                if (cursors.left.isDown) { //si la touche gauche est appuyée
+                    player.setVelocityX(-250); //alors vitesse négative en X
+                    player.anims.play('left', true); //et animation => gauche
+                }
+                else if (cursors.right.isDown) { //sinon si la touche droite est appuyée
+                    player.setVelocityX(250); //alors vitesse positive en X
+                    player.anims.play('right', true); //et animation => droite
+                }
+
+                else { // sinon
+                    player.setVelocityX(0); //vitesse nulle
+                    player.anims.play('turn', true); //animation fait face caméra
+                }
+
+                if (cursors.down.isDown) {
+                    player.setVelocityY(250);
+                    player.anims.play('down', true);
+                }
+
+                else if (cursors.up.isDown) {
+                    player.setVelocityY(-250);
+                    player.anims.play('up', true);
+                }
+                else {
+                    player.setVelocityY(0);
+                                }
+
+                //Changement scene
+    
+                if (player.y>256) {
+                    posx= 848
+                    posy= 576
+
+                    this.scene.start('Overworld', {  score: score, life:life }); //posy: player.y,
+                }
+                if (life==0){
+                    this.scene.start('GameOver')
+                }
+
+                //Attaque
+                if (cursors.space.isDown && cursors.left.isDown || actg==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    attack=true
+                    this.attack
+                    actg=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actg=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                
+                else if (cursors.space.isDown && cursors.right.isDown || actd==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    attack=true
+                    actd=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actd=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                else if(cursors.space.isDown && cursors.up.isDown || actu==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    attack=true
+                    actu=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actu=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                else if (cursors.space.isDown && cursors.down.isDown || actb==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                    
+                }
+                else if (cursors.space.isDown || actb==true){
+                    textbox.disableBody(true,true)
+                    text.setVisible(false)
+                    vieuxx=player.x
+                    vieuxy=player.y
+                    player.anims.play('attd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    attack=true
+                    actb=true
+                    this.attack
+
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.space.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        attack=false
+                        actb=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+
+                //Marteau
+
+                if (cursors.shift.isDown && cursors.left.isDown || actgm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martl',true)
+                    player.setSize(40,35)
+                    player.setOffset(-10,20)
+                    marteau=true
+                    this.eclate_roc
+                    actgm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actgm=false
+                        this.input.keyboard.enabled = true;
+                    },300);  
+                }
+                }
+                
+                else if (cursors.shift.isDown && cursors.right.isDown || actdm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martr',true)
+                    player.setSize(60,35)
+                    player.setOffset(15,10)
+                    marteau=true
+                    this.eclate_roc
+                    actdm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actdm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                    
+                }
+
+                else if(cursors.shift.isDown && cursors.up.isDown || actum==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martu',true)
+                    player.setSize(30,70)
+                    player.setOffset(20,-10)
+                    marteau=true
+                    this.eclate_roc
+                    actum=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actum=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+                else if (cursors.shift.isDown && cursors.down.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                    
+                }
+                else if (cursors.shift.isDown || actbm==true){
+                    if (marteau_possede==true){
+                    player.anims.play('martd',true)
+                    player.setSize(30,70)
+                    player.setOffset(10,10)
+                    marteau=true
+                    this.eclate_roc
+                    actbm=true
+                    cursors.right.reset();
+                    cursors.left.reset();
+                    cursors.up.reset();
+                    cursors.down.reset();
+                    cursors.shift.reset();
+                    this.input.keyboard.enabled = false;
+
+                    setTimeout(() => {
+                        player.setOffset(30,0)
+                        player.setSize(32,32)
+                        marteau=false
+                        actbm=false
+                        this.input.keyboard.enabled = true;
+                    },300); 
+                }
+                }
+
+
+            };
+
+            collectStar(player, star) {
+                star.disableBody(true, true); // l’étoile disparaît
+                score += 1; //augmente le score de 10
+                scoreText.setText( score); //met à jour l’affichage du score
+
+            }
+
+            
+            hitEnemy (player, enemies) {
+                if (attack==false){
+                    if (vulnerable==true){
+                life-=1;
+                vulnerable=false
+                player.setTint(0xff0000)
+                setTimeout(()=> {
+                    player.setTint(0xffffff)
+                    vulnerable=true
+                },2000)
+                enemies.setVelocityX(0);
+                enemies.setVelocity(0);
+                }
+                
+            }
+        }
+
+            attack(player,enemies){
+                enemies.disableBody(true, true);
+            }
+
+            eclate_roc(player,rock){
+                if (marteau==true){
+                rock.disableBody(true, true)
+                }
+            }
+
+            recup_marteau(player, marteau){
+                marteau_possede=true;
+                marteau.disableBody(true, true);
+            }
+            majLife(){
+                if (life==9){
+                    afficheVie.setFrame(0)
+                }
+                if (life==8){
+                afficheVie.setFrame(1)
+                }
+                if (life==7){
+                afficheVie.setFrame(2)
+                }
+                if (life==6){
+                afficheVie.setFrame(3)
+                }
+                if (life==5){
+                afficheVie.setFrame(4)
+                }
+                if (life==4){
+                afficheVie.setFrame(5)
+                }
+                if (life==3){
+                afficheVie.setFrame(6)
+                }
+                if (life==2){
+                afficheVie.setFrame(7)
+                }
+                if (life==1){
+                afficheVie.setFrame(8)
+                }
+                if (life==0){
+                afficheVie.setFrame(9)
+                }
+            }
+            
+        }
+        class GameOver extends Phaser.Scene {
+            constructor() {
+                super("GameOver");
+            }
+
+            preload() {
+                this.load.image('Over','assets/over.png')
+            }
+
+
+
+            create() {
+                this.add.image(400,225,'Over')            
+            }
+        
+        }
+        class Fin extends Phaser.Scene {
+            constructor() {
+                super("Fin");
+            }
+
+            preload() {
+                this.load.image('end','assets/Fin.png')
+            }
+
+
+
+            create() {
+                this.add.image(400,225,'end')            
+            }
+        
+        }
+
+        var config = {
+
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: false,
+                    debug: true
+                }
+            },
+
+            type: Phaser.AUTO,
+            width: 800, height: 450,
+            scene: [Overworld, Donjon, Donjon_suite,Dark, Overworld_02, Maison_01,Maison_02, Forge, GameOver, Fin],
+            //pixelArt :true
+        };
+
+        
+        new Phaser.Game(config);
+
+        var vulnerable=true;
+        var marteau_possede=false;
+        var lanterne_possede=false;
+        var cle_possede=false;
+        var bouton;
+        var cle;
+        var porte;
+        var g1;
+        var g2;
+        var g3;
+        var lanterne;
+        var boss;
+        var boss_vaincu=false;
+        var attack=false;
+        var marteau=false;
+        var inZone=false;
+        var life=9;
+        var lifeText;
+        var pnj;
+        var pnj1;
+        var pnj2;
+        var pnj3;
+        var player;
+        var stars;
+        var scoreText;
+        var score = 0;
+        var cursors;
+        var gameOver;
+        var posx=2944;
+        var posy=1056;
+        var actg=false;
+        var actd=false;
+        var actu=false;
+        var actb=false;
+        var actgm=false;
+        var actdm=false;
+        var actum=false;
+        var actbm=false;
+        var afficheVie;
+        var afficheGold;
+        var ui;
+        var vieuxx;
+        var vieuxy;
+        var bossLife=3;
+        var bossVulnerable=true;
+        var textbox;
+        var text;
+        var texteDit=true;
+        var coeur;
+        var music;
+        var afficheLanterne;
+        var afficheMarteau;
+        
+
+    </script>
+</body>
+
+</html>
