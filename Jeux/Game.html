@@ -1422,7 +1422,7 @@
 
 
             create() {
-                music.play()
+                
                 var rock=this.physics.add.group({
                     immovable:true
                 })
@@ -2331,19 +2331,14 @@
 
                 //Changement scene
     
-                if (player.y>480 && player.x>448) {
+                if (player.y>256) {
                     posx=816
                     posy=16
 
                     this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
                 }
 
-                if (player.y>480 && player.x<448){
-                    posx=240
-                    posy=16
-
-                    this.scene.start('Donjon', {  score: score, life:life }); //posy: player.y,
-                }
+                
                 if (life==0){
                     this.scene.start('GameOver')
                 }
@@ -2733,8 +2728,8 @@
 
 
             create() {
-                texteDit=true
                 music.destroy()
+                texteDit=true
                 music=this.sound.add('victoire',{ loop: true })
                 music.play()
                 cursors = this.input.keyboard.createCursorKeys();
